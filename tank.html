@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Html5 Tank Game Demo</title>
+</head>
+<body>
+	<h1 style="margin-left: 30px">HTML5 Tank Game Demo</h1>
+	<canvas id="can1" width="500px" height="400px"
+		style="border: 1px solid red; background-color: black; float: left; margin-left: 20px">
+</canvas>
+	<div id="info"
+		style="float: left; width: 300px; margin: 330px 0px 0px 10px">
+		Press arrow keys "W", "S", "A" and "S" to move tank. <br />
+		<br />Press key "J" to fire
+	</div>
+
+	<script type="text/javascript" src="jquery-1.10.0.js">		
+	</script>
+	<script type="text/javascript" src="data.js">		
+	</script>
+	<script type="text/javascript" src="class.agent.js">	
+	</script>
+	<script type="text/javascript" src="class.bullet.js">	
+	</script>
+	<script type="text/javascript" src="class.bomb.js">	
+	</script>
+	<script type="text/javascript" src="class.tank.js">	
+	</script>
+	<script type="text/javascript" src="class.herotank.js">		
+	</script>
+	<script type="text/javascript" src="class.enemytank.js">		
+	</script>
+	<script type="text/javascript">
+	var canvas = document.getElementById("can1");
+	var cxt = canvas.getContext("2d");
+	
+	var dataset = new Data();
+ 
+	var enemies = new Array();
+	var herobullets = new Array();
+	var enemybullets = new Array();
+	var bombs = new Array();
+
+
+	var tank = new HeroTank(cxt, 200, 363, dataset.UP, dataset.heroColor);
+	heroTank=tank;
+	for(var i=0;i<3;i++) {
+		enemies[i] = new EnemyTank(cxt, 50+i*50, 3, dataset.DOWN, dataset.enemyColor)
+	}	
+	rendermap();
+	function rendermap(){
+		isHitEnemyTank();
+		isHitHeroTank();
+		cxt.clearRect(0,0,500,400); 
+		drawEnemyBomb();
+
+		for (var i in enemies) {
+			  enemies[i].render();
+		}
+		for (var i=0; i<herobullets.length; i++) {
+			  herobullets[i].move();
+			  herobullets[i].render();	  
+		}
+		for (var i=0; i<enemybullets.length; i++) {
+			enemybullets[i].move();
+			enemybullets[i].render();	  
+		}
+		tank.render();
+
+	}
+	
+	function moveTanks(){
+		for (var i in enemies) {
+			  enemies[i].move();
+		}
+	}
+	function drawEnemyBomb(){
+		
+		for(var i=0;i<bombs.length;i++){
+		
+			var bomb=bombs[i];
+				bomb.render();
+			
+		}
+	}
+	function fail(){
+		alert('Game Over! But you may try again!');
+		window.location.reload();
+	}
+	
+	function win(){
+		alert('Well Done! You may try another round!');
+		window.location.reload();
+	}
+	function isHitHeroTank(){
+		if(!heroTank.isAlive){
+			return;
+		}
+		for(var i=0;i<enemybullets.length;i++){
+			var enemyBullet=enemybullets[i];
+			if(enemyBullet.isAlive){
+ 						
+						 	
+						switch(heroTank.direction){
+							case dataset.UP: 
+							case dataset.DOWN:
+								if(enemyBullet.x>=heroTank.x&&enemyBullet.x<=heroTank.x+20
+									&&enemyBullet.y>=heroTank.y&&enemyBullet.y<=heroTank.y+30){
+									heroTank.isAlive=false;
+									enemyBullet.isAlive=false;
+									var bomb = new Bomb(heroTank.x,heroTank.y)
+									bombs.push(bomb)
+									setTimeout("fail();",200)
+								}
+							break;
+							case dataset.RIGHT:  
+							case dataset.LEFT: 
+								if(enemyBullet.x>=heroTank.x&&enemyBullet.x<=heroTank.x+30
+									&&enemyBullet.y>=heroTank.y&&enemyBullet.y<=heroTank.y+20){
+									heroTank.isAlive=false;
+									enemyBullet.isAlive=false;
+									var bomb = new Bomb(heroTank.x,heroTank.y)
+									bombs.push(bomb)
+									setTimeout("fail();",200)
+
+									
+								}
+							break;
+
+						}
+ 
+
+
+			 
+		}
+	}
+		
+	}
+	//function to detect whether bullets have hitten enemy tanks
+	function isHitEnemyTank(){
+
+			for(var i=0;i<herobullets.length;i++){
+				var heroBullet=herobullets[i];
+				if(heroBullet.isAlive){
+
+				for(var j=0;j<enemies.length;j++){
+							
+							var enemyTank=enemies[j];
+							if(enemyTank.isAlive){	
+							switch(enemyTank.direction){
+								case dataset.UP: 
+								case dataset.DOWN:
+									if(heroBullet.x>=enemyTank.x&&heroBullet.x<=enemyTank.x+20
+										&&heroBullet.y>=enemyTank.y&&heroBullet.y<=enemyTank.y+30){
+										enemyTank.isAlive=false;
+										heroBullet.isAlive=false;
+										var bomb = new Bomb(enemyTank.x,enemyTank.y)
+										bombs.push(bomb)
+										enemies.splice(j,1)
+										if(enemies.length==0){
+											setTimeout("win();",50)
+										}									}
+								break;
+								case dataset.RIGHT:  
+								case dataset.LEFT: 
+									if(heroBullet.x>=enemyTank.x&&heroBullet.x<=enemyTank.x+30
+										&&heroBullet.y>=enemyTank.y&&heroBullet.y<=enemyTank.y+20){
+										enemyTank.isAlive=false;
+										heroBullet.isAlive=false;
+										var bomb = new Bomb(enemyTank.x,enemyTank.y)
+										bombs.push(bomb)
+										enemies.splice(j,1)
+										if(enemies.length==0){
+											setTimeout("win();",50)
+										}
+									}
+								break;
+
+							}
+
+						}
+
+
+				}
+			}
+		}
+}
+	
+	window.setInterval("moveTanks()",50);
+	
+	
+	window.setInterval("rendermap()", 50);
+		$(document).ready(function() {
+			$("body").keydown(function(e) {
+				getCommand(e)
+			});			
+			function getCommand(e) {
+				code = e.keyCode
+				switch (code) {
+				case 87://key w
+					tank.moveUp()
+					break;
+				case 68://key d
+					tank.moveRight()
+					break;
+				case 83://key s
+					tank.moveDown()
+					break;
+				case 65://key a
+					tank.moveLeft()
+					break;
+				case 74://key j
+					tank.shoot()
+					break;
+				}
+				rendermap();
+
+			}
+		});
+
+
+	</script>
+
+</body>
+</html>
